@@ -57,6 +57,8 @@ export default Ember.Mixin.create({
       yearRange: this.determineYearRange(),
       minDate: this.get('minDate') || null,
       maxDate: this.get('maxDate') || null,
+      defaultDate: this.get('defaultDate') || null,
+      setDefaultDate: !!this.get('defaultDate'),
       theme: this.get('theme') || null
     };
   },
@@ -69,6 +71,9 @@ export default Ember.Mixin.create({
 	 */
   didUpdateAttrs() {
     run.later(() => {
+      // Do not set or update anything when the component is destroying.
+      if (this.get('isDestroying') || this.get('isDestroyed')) { return; }
+
       this.setMinDate();
       this.setMaxDate();
       this.setPikadayDate();
@@ -80,19 +85,23 @@ export default Ember.Mixin.create({
   },
 
   didRender() {
-    this._super(...arguments);
+    this._super();
     this.autoHideOnDisabled();
   },
 
   setupPikaday() {
     let pikaday = new Pikaday(this.get('_options'));
 
+    if (this.get('defaultDate')) {
+      this.set('value', this.get('defaultDate'));
+    }
+
     this.set('pikaday', pikaday);
     this.setPikadayDate();
   },
 
   willDestroyElement() {
-    this._super(...arguments);
+    this._super();
     this.get('pikaday').destroy();
   },
 
@@ -118,7 +127,7 @@ export default Ember.Mixin.create({
 
       // If the current date is lower than minDate we set date to minDate
       run.schedule('sync', () => {
-        if (value && moment(value).isBefore(minDate, 'day')) {
+        if (value && moment(value, this.get('format')).isBefore(minDate, 'day')) {
           pikaday.setDate(minDate);
         }
       });
