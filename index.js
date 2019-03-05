@@ -1,9 +1,10 @@
 /* eslint-env node */
 'use strict';
-var fastbootTransform = require('fastboot-transform');
+const fastbootTransform = require('fastboot-transform');
 
 module.exports = {
-  name: 'ember-pikaday',
+  name: require('./package').name,
+
   options: {
     nodeAssets: {
       pikaday: {
